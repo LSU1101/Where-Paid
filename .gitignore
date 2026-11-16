@@ -1,0 +1,22 @@
+*.iml
+.gradle/
+.idea/
+.DS_Store
+build/
+/captures
+.externalNativeBuild
+.cxx
+.kotlin/
+*.apk
+!gradle/wrapper/gradle-wrapper.jar
+
+# 비밀 값: 절대 커밋하지 않는다 (README.md "local.properties 설정" 참고)
+local.properties
+*.jks
+*.keystore
+/keystore/
+google-services.json
+
+# Claude Code 개인 설정과 작업 트리
+.claude/settings.local.json
+.claude/worktrees/

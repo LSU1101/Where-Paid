@@ -1,0 +1,87 @@
+name: Android
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  # Actions 탭 → Android → Run workflow: 현재 main으로 APK를 빌드해 Release로 올린다.
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      # 설치된 앱을 덮어쓸 수 있도록 빌드할 때마다 versionCode를 올린다.
+      VERSION_CODE: ${{ github.run_number }}
+      # 카카오 키 (Settings → Secrets and variables → Actions). 없으면 빈 값으로 빌드된다.
+      KAKAO_NATIVE_APP_KEY: ${{ secrets.KAKAO_NATIVE_APP_KEY }}
+      KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
+      # CI 빌드는 기기 DB(Room)를 쓴다. 가짜 데이터는 로컬 개발용이다.
+      WHEREPAID_USE_FAKE_DATA: 'false'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Set version name
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "VERSION_NAME=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+          else
+            echo "VERSION_NAME=0.1.${{ github.run_number }}" >> "$GITHUB_ENV"
+          fi
+
+      # 팀 공용 서명 키. Secret이 없으면(포크에서 온 PR 등) 건너뛰고 기본 debug 키로 빌드한다.
+      - name: Set up team signing key
+        env:
+          SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        run: |
+          if [[ -z "$SIGNING_KEYSTORE_BASE64" ]]; then
+            echo "::warning::SIGNING_KEYSTORE_BASE64 Secret이 없어 기본 debug 키로 서명합니다."
+            exit 0
+          fi
+          echo "$SIGNING_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/team.jks"
+          {
+            echo "SIGNING_STORE_FILE=$RUNNER_TEMP/team.jks"
+            echo "SIGNING_STORE_PASSWORD=$SIGNING_STORE_PASSWORD"
+            echo "SIGNING_KEY_ALIAS=$SIGNING_KEY_ALIAS"
+            echo "SIGNING_KEY_PASSWORD=$SIGNING_KEY_PASSWORD"
+          } >> "$GITHUB_ENV"
+
+      - name: Unit tests
+        run: ./gradlew testDebugUnitTest :core:model:test
+
+      - name: Build APK
+        run: ./gradlew assembleDebug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-${{ env.VERSION_NAME }}
+          path: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            TAG="$GITHUB_REF_NAME"
+          else
+            TAG="build-${{ github.run_number }}"
+          fi
+          gh release create "$TAG" app/build/outputs/apk/debug/app-debug.apk \
+            --target "$GITHUB_SHA" \
+            --title "어디서돈썼지도 $VERSION_NAME" \
+            --notes "versionName $VERSION_NAME / versionCode $VERSION_CODE / commit ${GITHUB_SHA::7}"
