@@ -1,0 +1,23 @@
+# 이 파일을 local.properties로 복사해서 값을 채운다. local.properties는 커밋하지 않는다.
+#   cp local.properties.example local.properties
+# 아래 값이 모두 비어 있어도 빌드와 에뮬레이터 실행은 된다. 자세한 설명은 README.md.
+
+# Android SDK 위치. Android Studio로 프로젝트를 열면 자동으로 채워진다.
+# sdk.dir=/Users/<이름>/Library/Android/sdk
+
+# --- 팀 공용 서명 키 (팀 채널에서 team.jks와 비밀번호를 받는다) ---
+# 경로는 저장소 루트 기준. keystore/ 폴더는 .gitignore에 들어 있다.
+signing.storeFile=keystore/team.jks
+signing.storePassword=
+signing.keyAlias=
+signing.keyPassword=
+
+# --- 카카오 개발자 콘솔의 앱 키 (팀 공용 앱 1개) ---
+# 네이티브 앱 키: 카카오맵 SDK
+kakao.nativeAppKey=
+# REST API 키: 카카오 로컬 API(장소 검색)
+kakao.restApiKey=
+
+# --- 개발 옵션 ---
+# true(기본): 메모리의 가짜 거래를 보여준다. false: 기기 DB(Room)를 쓴다.
+wherepaid.useFakeData=true
