@@ -31,5 +31,6 @@ include(":core:data")
 
 // 화면
 include(":feature:map")
-include(":feature:history")
-include(":feature:settings")
+include(":feature:onboarding")
+include(":feature:placecheck")
+include(":feature:report")
