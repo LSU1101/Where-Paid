@@ -9,7 +9,7 @@ plugins {
 // 루트 build.gradle.kts가 local.properties / 환경변수에서 읽어 둔 값
 val secrets: Map<String, String> by rootProject.extra
 
-// 팀 공용 서명 키. 구글 로그인(SHA-1)과 카카오맵(키 해시)이 서명 키에 묶이므로
+// 팀 공용 서명 키. 카카오맵(키 해시)이 서명 키에 묶이므로
 // 로컬과 CI가 모두 같은 키로 서명해야 한다. 키 파일과 비밀번호는 커밋하지 않는다 (README.md 참고).
 val teamKeystore = secrets.getValue("signing.storeFile").takeIf { it.isNotEmpty() }?.let { rootProject.file(it) }
 val hasTeamKey = teamKeystore?.exists() == true &&
@@ -17,7 +17,7 @@ val hasTeamKey = teamKeystore?.exists() == true &&
 if (!hasTeamKey) {
     logger.warn(
         "⚠️  팀 서명 키가 설정되지 않아 이 PC의 기본 debug 키로 서명합니다. " +
-            "빌드와 실행은 되지만 카카오맵·구글 로그인은 동작하지 않고, 팀 키로 서명한 앱 위에 덮어 설치할 수 없습니다. " +
+            "빌드와 실행은 되지만 카카오맵은 동작하지 않고, 팀 키로 서명한 앱 위에 덮어 설치할 수 없습니다. " +
             "(README.md의 'local.properties 설정' 참고)"
     )
 }

@@ -66,11 +66,11 @@ Android Studio가 이미 만들어 둔 `local.properties`가 있다면 덮어쓰
 
 **누가 무엇을 채워야 하나요?**
 - 화면만 만드는 동안: 아무것도 안 채워도 됩니다.
-- 카카오맵, 장소 검색, 구글 로그인을 다루거나 **실기기에 설치해 팀원과 같은 앱을 쓸 때**: 서명 키와 카카오 키를 채웁니다.
+- 카카오맵, 장소 검색을 다루거나 **실기기에 설치해 팀원과 같은 앱을 쓸 때**: 서명 키와 카카오 키를 채웁니다.
 
 ### 팀 공용 서명 키
 
-구글 로그인(SHA-1)과 카카오맵(키 해시)은 앱 서명 키에 묶여 있습니다. 또 서명이 다른 APK는 덮어 설치할 수 없어서 앱을 지워야 하고, 그러면 데이터가 사라집니다. 그래서 **팀 전원과 CI가 같은 키 하나로 서명**합니다.
+카카오맵은 앱 서명 키의 키 해시에 묶여 있습니다. 또 서명이 다른 APK는 덮어 설치할 수 없어서 앱을 지워야 하고, 그러면 데이터가 사라집니다. 그래서 **팀 전원과 CI가 같은 키 하나로 서명**합니다.
 
 **팀원 (키 받기)**
 1. 팀 채널에서 `team.jks` 파일과 비밀번호, 별칭을 받습니다.
@@ -85,14 +85,10 @@ mkdir -p keystore && keytool -genkeypair -v -keystore keystore/team.jks -alias w
 - 비밀번호를 물으면 팀에서 쓸 값을 정합니다. 키 파일과 비밀번호는 팀 비공개 채널로만 공유합니다. **저장소, 이슈, PR에 올리지 않습니다.**
 - 키를 잃어버리면 모든 팀원이 앱을 지우고 다시 설치해야 하니 백업해 두세요.
 
-카카오 개발자 콘솔과 Firebase에 등록할 값은 이렇게 뽑습니다.
-```bash
-keytool -list -v -keystore keystore/team.jks -alias wherepaid
-```
+카카오 개발자 콘솔에 등록할 **키 해시**는 이렇게 뽑습니다. 패키지명은 `com.wherepaid.app`입니다.
 ```bash
 keytool -exportcert -alias wherepaid -keystore keystore/team.jks | openssl sha1 -binary | openssl base64
 ```
-첫 번째 명령의 `SHA1:` 값은 Firebase(구글 로그인)에, 두 번째 명령의 결과는 카카오 개발자 콘솔의 **키 해시**에 등록합니다. 패키지명은 `com.wherepaid.app`입니다.
 
 ### 카카오 키
 카카오 개발자 콘솔의 팀 공용 앱 1개를 같이 씁니다. **앱 키** 메뉴의 "네이티브 앱 키"와 "REST API 키"를 `local.properties`에 넣습니다. 키는 팀 채널에서 받으세요.
@@ -124,20 +120,22 @@ feature/settings/    ③ 설정 화면
 모든 모듈은 [`core/model`](core/model/src/main/kotlin/com/wherepaid/app/core/model)만 바라봅니다.
 
 ```kotlin
-interface PaymentSource         { val payments: Flow<ParsedPayment> }                           // ①
-interface LocationProvider      { suspend fun capture(): LocationResult }                         // ②
-interface PlaceResolver         { suspend fun resolve(merchant: String, near: LatLng?): Place? }  // ②
-interface TransactionRepository { /* 조회, 저장, 삭제, 장소, 동기화 */ }                          // ④
+interface PaymentSource         { val payments: Flow<ParsedPayment> }                                // ①
+interface LocationProvider      { suspend fun capture(): LocationResult }                              // ②
+interface PlaceResolver         { suspend fun resolve(merchant: String, near: LatLng?): List<Place>    // ② 자동 매칭
+                                  suspend fun search(query: String, near: LatLng?): List<Place> }     // ② 매장 찾기
+interface TransactionRepository { /* 월별·장소 확인 조회, 기록, 취소, 상태 이동, 학습기록 */ }           // ④
 ```
 
-- 화면(③)은 인터페이스를 매개변수로 받습니다. 실제 구현이 없어도 `core/model`의 `fake/`에 있는 가짜 구현과 `SampleData`로 화면과 미리보기(`@Preview`)를 만들 수 있습니다.
+- 결제는 요구사항 분석서의 다섯 가지 장소 상태(`PlaceStatus`) 중 하나입니다: 지도 핀(`MAPPED`), 느낌표 핀(`AMBIGUOUS`), 매칭실패함(`UNMATCHED`), 매칭 대기(`PENDING_SEARCH`), 온라인(`ONLINE`). 취소는 원래 결제에 붙습니다.
+- 화면(③)은 인터페이스를 매개변수로 받습니다. 실제 구현이 없어도 `core/model`의 `fake/`에 있는 가짜 구현과 `SampleData`(다섯 상태와 취소가 모두 들어 있음)로 화면과 미리보기(`@Preview`)를 만들 수 있습니다.
 - ①②④는 자기 모듈에 구현을 만든 뒤 [`AppContainer`](app/src/main/kotlin/com/wherepaid/app/WherePaidApp.kt)에서 가짜 구현을 바꿔 끼웁니다.
-- 모델(`Transaction`, `Place` 등)과 인터페이스는 인계 문서의 **초안**입니다. 1주차 회의에서 확정하고, 바꿀 때는 그 변경만 담은 PR로 올립니다.
+- 모델과 인터페이스를 바꿀 때는 그 변경만 담은 PR로 올려 팀 전체 확인을 받습니다.
 
 ### 저장 방식
-원격 저장(Firebase / 구글 드라이브)은 아직 정하지 않았습니다. 지금은 기기 DB(Room)만 있고, 원격 저장은 `TransactionRepository.sync()` 뒤에 들어갈 예정입니다.
+로그인과 앱 서버 없이 **기기 DB(Room)에만 저장**하고, Android 자동 백업으로 본인 Google 계정에 보존합니다 (요구사항 분석서 1-4, NFR-02). 서버는 월간 리포트의 LLM 호출을 중계하는 것 하나뿐입니다.
 
-가짜 데이터 대신 Room으로 실행해 보려면 `local.properties`에 아래 줄을 넣고 다시 빌드합니다. (아직 결제를 저장하는 기능이 없어서 내역은 0건으로 나옵니다)
+가짜 데이터 대신 Room으로 실행해 보려면 `local.properties`에 아래 줄을 넣고 다시 빌드합니다. (아직 결제를 저장하는 기능이 없어서 0건으로 나옵니다)
 ```properties
 wherepaid.useFakeData=false
 ```

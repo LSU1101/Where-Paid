@@ -17,11 +17,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.wherepaid.app.core.model.PaymentKind
 import com.wherepaid.app.core.model.Transaction
 import com.wherepaid.app.core.model.TransactionRepository
 import com.wherepaid.app.core.model.fake.FakeTransactionRepository
 import java.text.NumberFormat
+import java.time.YearMonth
 import java.util.Locale
 
 /**
@@ -30,7 +30,7 @@ import java.util.Locale
  */
 @Composable
 fun HistoryScreen(repository: TransactionRepository, modifier: Modifier = Modifier) {
-    val transactions by repository.observeAll().collectAsStateWithLifecycle(initialValue = emptyList())
+    val transactions by remember(repository) { repository.observeMonth(YearMonth.now()) }.collectAsStateWithLifecycle(initialValue = emptyList())
 
     Column(modifier = modifier.fillMaxSize()) {
         Text(
@@ -56,16 +56,11 @@ fun HistoryScreen(repository: TransactionRepository, modifier: Modifier = Modifi
 
 @Composable
 private fun TransactionRow(transaction: Transaction) {
-    val amount = NumberFormat.getNumberInstance(Locale.KOREA).format(transaction.amount) + "원"
-    val label = when (transaction.kind) {
-        PaymentKind.PAYMENT -> amount
-        PaymentKind.CANCEL -> "$amount 취소"
-        PaymentKind.FAILED -> "$amount 실패"
-    }
+    val label = NumberFormat.getNumberInstance(Locale.KOREA).format(transaction.netAmount) + "원"
     ListItem(
-        headlineContent = { Text(transaction.merchantRaw ?: "가맹점 알 수 없음") },
+        headlineContent = { Text(transaction.place?.name ?: transaction.merchantRaw) },
         supportingContent = {
-            Text(listOfNotNull(transaction.cardName, "온라인".takeIf { transaction.isOnline }).joinToString(" · "))
+            Text(listOfNotNull(transaction.cardName, transaction.status.name).joinToString(" · "))
         },
         trailingContent = { Text(label, style = MaterialTheme.typography.bodyLarge) },
     )

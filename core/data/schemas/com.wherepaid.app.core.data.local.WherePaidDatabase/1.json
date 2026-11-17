@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "2b87c23f9e878a3f77f513706ec12717",
+    "identityHash": "ac847bcf046b52e6b5e2f37a056ce9f8",
     "entities": [
       {
         "tableName": "transactions",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `amount` INTEGER NOT NULL, `merchantRaw` TEXT, `cardName` TEXT, `payType` TEXT, `kind` TEXT NOT NULL, `paidAt` INTEGER NOT NULL, `latitude` REAL, `longitude` REAL, `locationAccuracyM` REAL, `placeId` TEXT, `isOnline` INTEGER NOT NULL, `isUserEdited` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `amount` INTEGER NOT NULL, `merchantRaw` TEXT NOT NULL, `cardName` TEXT, `payType` TEXT, `paidAt` INTEGER NOT NULL, `dedupeKey` TEXT, `latitude` REAL, `longitude` REAL, `locationAccuracyM` REAL, `province` TEXT, `district` TEXT, `status` TEXT NOT NULL, `placeId` TEXT, `unmatchedReason` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -23,7 +23,8 @@
           {
             "fieldPath": "merchantRaw",
             "columnName": "merchantRaw",
-            "affinity": "TEXT"
+            "affinity": "TEXT",
+            "notNull": true
           },
           {
             "fieldPath": "cardName",
@@ -36,16 +37,15 @@
             "affinity": "TEXT"
           },
           {
-            "fieldPath": "kind",
-            "columnName": "kind",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
             "fieldPath": "paidAt",
             "columnName": "paidAt",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "dedupeKey",
+            "columnName": "dedupeKey",
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "latitude",
@@ -63,21 +63,30 @@
             "affinity": "REAL"
           },
           {
+            "fieldPath": "province",
+            "columnName": "province",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "district",
+            "columnName": "district",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
             "fieldPath": "placeId",
             "columnName": "placeId",
             "affinity": "TEXT"
           },
           {
-            "fieldPath": "isOnline",
-            "columnName": "isOnline",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "isUserEdited",
-            "columnName": "isUserEdited",
-            "affinity": "INTEGER",
-            "notNull": true
+            "fieldPath": "unmatchedReason",
+            "columnName": "unmatchedReason",
+            "affinity": "TEXT"
           }
         ],
         "primaryKey": {
@@ -97,13 +106,31 @@
             "createSql": "CREATE INDEX IF NOT EXISTS `index_transactions_paidAt` ON `${TABLE_NAME}` (`paidAt`)"
           },
           {
-            "name": "index_transactions_placeId",
+            "name": "index_transactions_status",
             "unique": false,
             "columnNames": [
-              "placeId"
+              "status"
             ],
             "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_transactions_placeId` ON `${TABLE_NAME}` (`placeId`)"
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_transactions_status` ON `${TABLE_NAME}` (`status`)"
+          },
+          {
+            "name": "index_transactions_merchantRaw",
+            "unique": false,
+            "columnNames": [
+              "merchantRaw"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_transactions_merchantRaw` ON `${TABLE_NAME}` (`merchantRaw`)"
+          },
+          {
+            "name": "index_transactions_dedupeKey",
+            "unique": true,
+            "columnNames": [
+              "dedupeKey"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_transactions_dedupeKey` ON `${TABLE_NAME}` (`dedupeKey`)"
           }
         ]
       },
@@ -152,11 +179,168 @@
             "id"
           ]
         }
+      },
+      {
+        "tableName": "cancellations",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `transactionId` TEXT NOT NULL, `amount` INTEGER NOT NULL, `canceledAt` INTEGER NOT NULL, FOREIGN KEY(`transactionId`) REFERENCES `transactions`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "transactionId",
+            "columnName": "transactionId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "amount",
+            "columnName": "amount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "canceledAt",
+            "columnName": "canceledAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_cancellations_transactionId",
+            "unique": false,
+            "columnNames": [
+              "transactionId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_cancellations_transactionId` ON `${TABLE_NAME}` (`transactionId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "transactions",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "transactionId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "candidates",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`transactionId` TEXT NOT NULL, `placeId` TEXT NOT NULL, PRIMARY KEY(`transactionId`, `placeId`), FOREIGN KEY(`transactionId`) REFERENCES `transactions`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "transactionId",
+            "columnName": "transactionId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "placeId",
+            "columnName": "placeId",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "transactionId",
+            "placeId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_candidates_placeId",
+            "unique": false,
+            "columnNames": [
+              "placeId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_candidates_placeId` ON `${TABLE_NAME}` (`placeId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "transactions",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "transactionId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "learned_places",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`merchant` TEXT NOT NULL, `placeId` TEXT NOT NULL, PRIMARY KEY(`merchant`))",
+        "fields": [
+          {
+            "fieldPath": "merchant",
+            "columnName": "merchant",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "placeId",
+            "columnName": "placeId",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "merchant"
+          ]
+        }
+      },
+      {
+        "tableName": "designations",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`merchant` TEXT NOT NULL, `designation` TEXT NOT NULL, PRIMARY KEY(`merchant`))",
+        "fields": [
+          {
+            "fieldPath": "merchant",
+            "columnName": "merchant",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "designation",
+            "columnName": "designation",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "merchant"
+          ]
+        }
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '2b87c23f9e878a3f77f513706ec12717')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ac847bcf046b52e6b5e2f37a056ce9f8')"
     ]
   }
 }

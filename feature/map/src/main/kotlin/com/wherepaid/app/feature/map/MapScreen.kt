@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wherepaid.app.core.model.TransactionRepository
 import com.wherepaid.app.core.model.fake.FakeTransactionRepository
+import java.time.YearMonth
 
 /**
  * 지도 (홈). 아직 빈 화면이다.
@@ -23,7 +24,7 @@ import com.wherepaid.app.core.model.fake.FakeTransactionRepository
  */
 @Composable
 fun MapScreen(repository: TransactionRepository, modifier: Modifier = Modifier) {
-    val transactions by repository.observeAll().collectAsStateWithLifecycle(initialValue = emptyList())
+    val transactions by remember(repository) { repository.observeMonth(YearMonth.now()) }.collectAsStateWithLifecycle(initialValue = emptyList())
     val withLocation = transactions.count { it.location != null }
 
     Column(
