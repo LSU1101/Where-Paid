@@ -20,7 +20,7 @@
 ### Android Studio로
 1. 저장소를 클론합니다.
    ```bash
-   git clone https://github.com/LSU1101/Where-Paid.git
+   git clone https://github.com/SKYPASS-HSU/Where-Paid.git
    ```
 2. Android Studio → **Open** → 클론한 폴더를 선택하고 Gradle Sync가 끝날 때까지 기다립니다.
 3. 상단에서 에뮬레이터(없으면 Device Manager에서 Pixel 계열, API 36으로 하나 만듭니다)를 고르고 ▶ **Run**을 누릅니다.
@@ -154,7 +154,7 @@ wherepaid.useFakeData=false
 자주 쓰는 명령은 [CLAUDE.md](CLAUDE.md)에 있습니다.
 
 ### APK 배포
-APK는 GitHub Actions가 빌드합니다. 아래 둘 중 하나를 하면 몇 분 뒤 [Releases](https://github.com/LSU1101/Where-Paid/releases)에 올라갑니다.
+APK는 GitHub Actions가 빌드합니다. 아래 둘 중 하나를 하면 몇 분 뒤 [Releases](https://github.com/SKYPASS-HSU/Where-Paid/releases)에 올라갑니다.
 - 저장소 → **Actions** → **Android** → **Run workflow**
 - 태그 푸시: `git tag v0.2.0` 후 `git push origin v0.2.0`
 
