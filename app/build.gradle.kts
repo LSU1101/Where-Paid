@@ -82,6 +82,7 @@ kotlin {
 dependencies {
     // :app만 모든 모듈을 알고, AppContainer에서 구현을 골라 화면에 넘긴다.
     implementation(project(":core:model"))
+    implementation(project(":core:designsystem"))
     implementation(project(":core:notification"))
     implementation(project(":core:location"))
     implementation(project(":core:place"))
