@@ -33,6 +33,9 @@ class AppContainer(context: Context) {
     /** 첫 실행 온보딩을 끝냈는지. 기기에만 저장하는 작은 설정값이라 SharedPreferences로 둔다. */
     val onboardingStore = OnboardingStore(context)
 
+    /** 인터넷 연결 여부 (오프라인 안내, 매칭 대기 재검색). */
+    val networkMonitor = NetworkMonitor(context)
+
     // TODO(①): :core:notification 구현으로 교체
     val paymentSource: PaymentSource by lazy { FakePaymentSource() }
 

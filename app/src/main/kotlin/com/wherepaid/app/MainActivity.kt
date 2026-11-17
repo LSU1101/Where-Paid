@@ -1,6 +1,7 @@
 package com.wherepaid.app
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -12,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -24,7 +26,7 @@ import com.wherepaid.app.core.designsystem.component.WherePaidIcons
 import com.wherepaid.app.core.designsystem.theme.WherePaidTheme
 import com.wherepaid.app.feature.map.MapScreen
 import com.wherepaid.app.feature.onboarding.OnboardingScreen
-import com.wherepaid.app.feature.placecheck.PlaceCheckScreen
+import com.wherepaid.app.feature.placecheck.PlaceCheckRoute
 import com.wherepaid.app.feature.report.ReportScreen
 
 class MainActivity : ComponentActivity() {
@@ -89,7 +91,18 @@ private fun WherePaidNav(container: AppContainer) {
                 })
             }
             composable(Routes.MAP) { MapScreen() }
-            composable(Routes.PLACE_CHECK) { PlaceCheckScreen(Modifier.statusBarsPadding()) }
+            composable(Routes.PLACE_CHECK) {
+                val context = LocalContext.current
+                PlaceCheckRoute(
+                    repository = container.transactionRepository,
+                    isOnline = container.networkMonitor.isOnline,
+                    // TODO(③): S-04 후보 고르기, S-06 매장 찾기 화면을 만들면 그 경로로 보낸다.
+                    onChooseCandidate = { Toast.makeText(context, "후보 고르기 화면은 준비 중이에요", Toast.LENGTH_SHORT).show() },
+                    onFindPlace = { Toast.makeText(context, "매장 찾기 화면은 준비 중이에요", Toast.LENGTH_SHORT).show() },
+                    onOpenMap = { navController.navigateToTab(Routes.MAP) },
+                    modifier = Modifier.statusBarsPadding(),
+                )
+            }
             composable(Routes.REPORT) { ReportScreen(Modifier.statusBarsPadding()) }
         }
     }
