@@ -29,8 +29,11 @@ import com.wherepaid.app.core.designsystem.theme.WherePaidTheme
 /** 버튼 크기 (시안: 시작하기 54, 다이얼로그 48, 권한 카드 안 40). */
 enum class ButtonSize(val height: Dp) { Large(54.dp), Medium(48.dp), Small(40.dp) }
 
-/** 버튼 색 종류. */
-enum class ButtonStyle { Primary, Secondary, Danger }
+/**
+ * 버튼 색 종류.
+ * [Muted]는 회색 바탕에 흐린 14 글자: S-04의 [온라인 결제예요] [여기 아니에요]처럼 덜 권하는 선택지.
+ */
+enum class ButtonStyle { Primary, Secondary, Danger, Muted }
 
 @Composable
 fun WherePaidButton(
@@ -47,6 +50,7 @@ fun WherePaidButton(
         !enabled -> colors.border to colors.textSecondary
         style == ButtonStyle.Primary -> colors.primary to colors.onPrimary
         style == ButtonStyle.Danger -> colors.danger to colors.onPrimary
+        style == ButtonStyle.Muted -> colors.surfaceMuted to colors.textSecondary
         else -> colors.surfaceMuted to colors.textPrimary
     }
     val shape = when (size) {
@@ -54,10 +58,9 @@ fun WherePaidButton(
         ButtonSize.Medium -> WherePaidShapes.medium
         ButtonSize.Small -> WherePaidShapes.small
     }
-    val textStyle = when (size) {
-        ButtonSize.Large -> type.button16
-        ButtonSize.Medium -> type.body15Strong
-        ButtonSize.Small -> type.label14
+    val textStyle = when {
+        style == ButtonStyle.Muted -> type.label14
+        else -> sizeTextStyle(size)
     }
     Box(
         modifier = modifier
@@ -69,6 +72,16 @@ fun WherePaidButton(
         contentAlignment = Alignment.Center,
     ) {
         Text(text, style = textStyle, color = content)
+    }
+}
+
+@Composable
+private fun sizeTextStyle(size: ButtonSize): TextStyle {
+    val type = WherePaidTheme.typography
+    return when (size) {
+        ButtonSize.Large -> type.button16
+        ButtonSize.Medium -> type.body15Strong
+        ButtonSize.Small -> type.label14
     }
 }
 

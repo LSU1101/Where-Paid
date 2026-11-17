@@ -74,7 +74,8 @@ object SampleData {
             val location = when {
                 !hasLocation -> null
                 place != null -> place.latLng
-                candidates.isNotEmpty() -> candidates.first().latLng
+                // 느낌표 핀: 첫 후보에서 남쪽으로 약 40m (시안의 "40m · 120m · 210m"처럼 거리가 보이게)
+                candidates.isNotEmpty() -> candidates.first().latLng.let { LatLng(it.latitude - 0.00035, it.longitude) }
                 else -> SEONGSU
             }
             return Transaction(
