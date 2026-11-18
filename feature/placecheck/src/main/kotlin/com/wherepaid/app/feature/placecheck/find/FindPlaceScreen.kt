@@ -30,10 +30,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.wherepaid.app.core.designsystem.component.BackHeader
@@ -211,7 +209,7 @@ private fun NumberBadge(number: Int, selected: Boolean) {
     ) {
         Text(
             number.toString(),
-            style = WherePaidTheme.typography.label12.copy(fontSize = 11.76.sp, fontWeight = FontWeight.Bold),
+            style = WherePaidTheme.typography.badge12,
             color = if (selected) colors.onPrimary else colors.textSecondary,
         )
     }
@@ -267,7 +265,7 @@ private fun MapPin(number: Int, selected: Boolean, modifier: Modifier) {
     ) {
         Text(
             number.toString(),
-            style = WherePaidTheme.typography.label12.copy(fontWeight = FontWeight.Bold),
+            style = WherePaidTheme.typography.badge12,
             color = if (selected) colors.onPrimary else colors.textPrimary,
         )
     }
