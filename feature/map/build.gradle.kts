@@ -29,17 +29,13 @@ kotlin {
 }
 
 dependencies {
-    // 화면은 :core:model(모델, 인터페이스, 가짜 구현)만 의존한다.
+    // 화면은 :core:model(모델, 인터페이스, 가짜 구현)과 :core:designsystem만 의존한다.
     // 다른 feature나 core 구현 모듈(:core:data 등)을 추가하지 않는다.
     implementation(project(":core:model"))
+    implementation(project(":core:designsystem"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.material.icons.core)
-    implementation(libs.androidx.compose.ui.tooling.preview)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     testImplementation(libs.junit)

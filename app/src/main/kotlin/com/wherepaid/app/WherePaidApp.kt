@@ -30,6 +30,9 @@ class AppContainer(context: Context) {
         if (usesFakeData) FakeTransactionRepository() else createTransactionRepository(context)
     }
 
+    /** 첫 실행 온보딩을 끝냈는지. 기기에만 저장하는 작은 설정값이라 SharedPreferences로 둔다. */
+    val onboardingStore = OnboardingStore(context)
+
     // TODO(①): :core:notification 구현으로 교체
     val paymentSource: PaymentSource by lazy { FakePaymentSource() }
 

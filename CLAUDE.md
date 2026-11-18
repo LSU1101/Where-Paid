@@ -31,7 +31,10 @@ Android SDK 위치는 `ANDROID_HOME` 또는 `local.properties`의 `sdk.dir`로 �
 :core:location       ② LocationProvider 구현 자리 (GPS 1회 측정)
 :core:place          ② PlaceResolver 구현 자리 (카카오 로컬 API)
 :core:data           ④ Room + TransactionRepository 구현
-:feature:map|history|settings   ③ 화면 (Compose)
+:feature:onboarding  ③ S-01 온보딩 (첫 실행)
+:feature:map         ③ 탭 1 지도: S-02 지도 홈, S-03 핀 상세, D-01, S-04 후보 고르기, S-07 온라인 결제
+:feature:placecheck  ③ 탭 2 장소 확인: S-05, S-06 매장 찾기, D-02
+:feature:report      ③ 탭 3 리포트: S-08 월간 리포트, S-09 공유 카드
 ```
 
 데이터 흐름 (목표. 파이프라인은 아직 없다):
@@ -41,6 +44,9 @@ Android SDK 위치는 `ANDROID_HOME` 또는 `local.properties`의 `sdk.dir`로 �
 - `local.properties`의 `wherepaid.useFakeData`(기본 `true`)가 `FakeTransactionRepository`(메모리 샘플)와 Room 구현을 고른다. CI 빌드는 `false`다.
 - 기기 DB(Room)가 원본이다. 원격 저장 방식(Firebase / 구글 드라이브)은 **미정**이며 `TransactionRepository.sync()` 뒤에 숨긴다. 정해지기 전에는 Firebase·Drive 의존성을 추가하지 않는다.
 - 비밀 값(서명 키, 카카오 키)은 루트 `build.gradle.kts`가 `local.properties` → 환경변수 순으로 읽어 `rootProject.extra["secrets"]`에 둔다. 새 키가 필요하면 그 맵과 `local.properties.example`, `.github/workflows/android.yml`, README를 같이 고친다. 값이 비어 있어도 빌드는 돼야 한다.
+- 화면 번호(S-01 등)는 피그마 시안의 프레임 이름이다. 하단 탭과 경로는 `app`의 `MainActivity.kt`(`Routes`, `TopLevelDestination`)에 있고, 첫 실행 여부는 `OnboardingStore`.
+- 화면 작성 규칙: `XxxScreen(state, onAction…)`은 상태만 받아 그리는 함수로 두고 시안의 상태 프레임마다 `@Preview`를 만든다. 저장소 연결과 상태 계산은 같은 모듈의 `XxxRoute` + ViewModel에서 하고, ViewModel은 `AppContainer`의 인터페이스를 생성자로 받는다.
+- 지도 탭은 상태 바 밑까지 그린다. 다른 탭 화면은 `statusBarsPadding()`을 받는다 (`Scaffold`의 `contentWindowInsets`가 0).
 - 패키지: `com.wherepaid.app`(app), `com.wherepaid.app.core.<모듈>`, `com.wherepaid.app.feature.<모듈>`. 버전은 `gradle/libs.versions.toml`에서만 관리한다.
 
 ## 팀 규칙
