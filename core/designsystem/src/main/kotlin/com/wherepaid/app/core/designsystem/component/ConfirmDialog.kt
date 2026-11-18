@@ -22,7 +22,9 @@ import com.wherepaid.app.core.designsystem.theme.WherePaidTheme
 
 /**
  * 확인 다이얼로그 (D-01 삭제 확인, D-02 등록 전 나가기).
- * 제목, 회색 요약 칸, 설명, 버튼 두 개. 오른쪽 버튼이 확인.
+ * 제목, 회색 요약 칸, 설명, 버튼 두 개. 왼쪽이 [dismissText] → [onDismiss], 오른쪽이 [confirmText] → [onConfirm].
+ * 바깥을 누르거나 뒤로 가기는 [onDismissRequest] (기본은 왼쪽 버튼과 같음).
+ * D-02처럼 오른쪽이 "머무르기"면 [onDismissRequest]를 [onConfirm]으로 넘긴다.
  */
 @Composable
 fun ConfirmDialog(
@@ -34,8 +36,9 @@ fun ConfirmDialog(
     onDismiss: () -> Unit,
     summary: String? = null,
     confirmStyle: ButtonStyle = ButtonStyle.Primary,
+    onDismissRequest: () -> Unit = onDismiss,
 ) {
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(onDismissRequest = onDismissRequest) {
         ConfirmDialogContent(title, message, confirmText, dismissText, onConfirm, onDismiss, summary, confirmStyle)
     }
 }

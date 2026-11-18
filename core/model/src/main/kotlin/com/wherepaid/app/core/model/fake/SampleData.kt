@@ -33,6 +33,12 @@ object SampleData {
     val kyoboGwanghwamun = place("kyobo", "교보문고 광화문점", 37.5711, 126.9779, "문화,예술 > 서점", "서울 종로구 샘플로 4")
     val kfcSungshin = place("kfc", "KFC 성신여대점", 37.5925, 127.0167, "음식점 > 패스트푸드", "서울 성북구 샘플로 5")
 
+    /** 매장 찾기(S-06) 검색 결과용. 시안의 "KFC" 검색 예시. */
+    val kfcOthers = listOf(
+        place("kfc-gireum", "KFC 길음역점", 37.6031, 127.0250, "음식점 > 패스트푸드", "서울 성북구 샘플로 6"),
+        place("kfc-hyehwa", "KFC 혜화점", 37.5822, 127.0019, "음식점 > 패스트푸드", "서울 종로구 샘플로 7"),
+    )
+
     /** 느낌표 핀 "GS25 3,400원"의 후보 3곳. */
     val gs25Candidates = listOf(
         place("gs25-hansung", "GS25 한성대점", 37.5884, 127.0064, "편의점", "서울 성북구 샘플로 10"),
@@ -46,7 +52,14 @@ object SampleData {
     )
 
     val places: List<Place> =
-        listOf(starbucksSeongsu, cuHansung, oliveyoungSeongsu, kyoboGwanghwamun, kfcSungshin) + gs25Candidates + ediyaCandidates
+        listOf(starbucksSeongsu, cuHansung, oliveyoungSeongsu, kyoboGwanghwamun, kfcSungshin) +
+            kfcOthers + gs25Candidates + ediyaCandidates
+
+    /**
+     * 가짜 별칭사전 (법인명 → 브랜드명). 실제 별칭사전은 ②가 :core:place에 만든다 (분석서 5장).
+     * 매장 찾기 화면의 검색어를 미리 채울 때와 가짜 검색에서 쓴다.
+     */
+    val aliases: Map<String, String> = mapOf("(주)케이에프씨코리" to "KFC", "씨유" to "CU")
 
     /**
      * [month]의 가짜 결제. 기본은 이번 달이라 앱을 켜면 지도 홈에 바로 보인다.

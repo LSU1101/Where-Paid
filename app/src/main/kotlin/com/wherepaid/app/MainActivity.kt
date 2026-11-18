@@ -1,7 +1,6 @@
 package com.wherepaid.app
 
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -16,9 +15,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -31,6 +31,7 @@ import com.wherepaid.app.feature.map.MapScreen
 import com.wherepaid.app.feature.map.candidate.CandidatePickerRoute
 import com.wherepaid.app.feature.onboarding.OnboardingScreen
 import com.wherepaid.app.feature.placecheck.PlaceCheckRoute
+import com.wherepaid.app.feature.placecheck.find.FindPlaceRoute
 import com.wherepaid.app.feature.report.ReportScreen
 
 class MainActivity : ComponentActivity() {
@@ -51,6 +52,10 @@ private object Routes {
     const val MAP = "map"
     const val PLACE_CHECK = "place-check"
     const val REPORT = "report"
+
+    /** S-06 매장 찾기. 탭이 아니라 하단 탭 바가 없다. */
+    const val FIND_PLACE = "find-place/{transactionId}"
+    fun findPlace(transactionId: String) = "find-place/$transactionId"
 }
 
 /** 하단 탭 (피그마 시안: 지도 / 장소 확인 / 리포트). */
@@ -98,18 +103,28 @@ private fun WherePaidNav(container: AppContainer) {
             }
             composable(Routes.MAP) { MapScreen() }
             composable(Routes.PLACE_CHECK) {
-                val context = LocalContext.current
                 PlaceCheckRoute(
                     repository = container.transactionRepository,
                     isOnline = container.networkMonitor.isOnline,
                     onChooseCandidate = { candidateSheetFor = it },
-                    // TODO(③): S-06 매장 찾기 화면을 만들면 그 경로로 보낸다.
-                    onFindPlace = { Toast.makeText(context, "매장 찾기 화면은 준비 중이에요", Toast.LENGTH_SHORT).show() },
+                    onFindPlace = { navController.navigate(Routes.findPlace(it)) },
                     onOpenMap = { navController.navigateToTab(Routes.MAP) },
                     modifier = Modifier.statusBarsPadding(),
                 )
             }
             composable(Routes.REPORT) { ReportScreen(Modifier.statusBarsPadding()) }
+            composable(
+                Routes.FIND_PLACE,
+                arguments = listOf(navArgument("transactionId") { type = NavType.StringType }),
+            ) { entry ->
+                FindPlaceRoute(
+                    transactionId = entry.arguments?.getString("transactionId").orEmpty(),
+                    repository = container.transactionRepository,
+                    resolver = container.placeResolver,
+                    onFinished = { navController.popBackStack() },
+                    modifier = Modifier.statusBarsPadding(),
+                )
+            }
         }
     }
 
