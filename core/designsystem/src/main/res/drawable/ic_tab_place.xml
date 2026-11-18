@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 피그마 하단 탭 아이콘 (22×22, 선 1.8). 색은 Icon의 tint로 바꾼다. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="22dp"
+    android:height="22dp"
+    android:viewportWidth="22"
+    android:viewportHeight="22">
+    <path android:pathData="M11 20C11 20 5 14.4 5 10C5 8.4087 5.63214 6.88258 6.75736 5.75736C7.88258 4.63214 9.4087 4 11 4C12.5913 4 14.1174 4.63214 15.2426 5.75736C16.3679 6.88258 17 8.4087 17 10C17 14.4 11 20 11 20Z" android:strokeWidth="1.8" android:strokeColor="#6B7684" android:strokeLineCap="round" android:strokeLineJoin="round" />
+    <path android:pathData="M8.4 10.1L10.3 11.9L13.7 8.3" android:strokeWidth="1.8" android:strokeColor="#6B7684" android:strokeLineCap="round" android:strokeLineJoin="round" />
+</vector>

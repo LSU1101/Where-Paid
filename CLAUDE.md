@@ -26,6 +26,7 @@ Android SDK 위치는 `ANDROID_HOME` 또는 `local.properties`의 `sdk.dir`로 �
 ```
 :app                 Application, AppContainer(수동 DI), 하단 탭 네비게이션
 :core:model          순수 Kotlin. 모델 + 인터페이스 4개(Contracts.kt) + 가짜 구현(fake/)
+:core:designsystem   피그마 시안의 색·글꼴(Pretendard)·모양 토큰, 공통 컴포넌트, 금액·날짜 표기
 :core:notification   ① PaymentSource 구현 자리 (알림 수집·파싱)
 :core:location       ② LocationProvider 구현 자리 (GPS 1회 측정)
 :core:place          ② PlaceResolver 구현 자리 (카카오 로컬 API)
@@ -45,9 +46,10 @@ Android SDK 위치는 `ANDROID_HOME` 또는 `local.properties`의 `sdk.dir`로 �
 ## 팀 규칙
 
 ### 모듈 경계
-- 의존 방향: `feature:* → core:model` / `core:{notification,location,place,data} → core:model` / `app → 전부`.
+- 의존 방향: `feature:* → core:model, core:designsystem` / `core:{notification,location,place,data} → core:model` / `app → 전부`. `core:designsystem`은 다른 모듈에 의존하지 않는다.
 - feature끼리, core 구현 모듈끼리는 서로 의존하지 않는다. feature가 `core:data` 같은 구현 모듈을 의존하지 않는다.
 - `core:model`에는 Android 의존성을 넣지 않는다.
+- 화면 코드에서 색(`Color(0x…)`)·글자 크기·모서리를 직접 쓰지 않는다. `WherePaidTheme.colors`, `WherePaidTheme.typography`, `WherePaidShapes`와 `core:designsystem`의 컴포넌트를 쓰고, 없으면 피그마에서 값을 확인해 디자인 시스템에 먼저 추가한다. 금액·날짜 표기는 `format/Format.kt`("61,500원", "6.2만", "10.11 (토) 14:32").
 - Room 타입(Entity, Dao, Database)은 `core:data` 안에서 `internal`로 둔다.
 - `Contracts.kt`와 `Models.kt`를 바꾸면 모든 담당이 영향을 받는다. 다른 작업에 섞지 말고 그 변경만 담은 PR로 올려 팀 전체 확인을 받는다.
 - 담당: ① `core:notification` / ② `core:location`, `core:place` / ③ `feature:*`, `app`의 네비게이션·테마 / ④ `core:data`, `.github/`, 문서. 남의 모듈을 고쳐야 하면 PR 설명에 적는다.

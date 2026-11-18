@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import com.wherepaid.app.core.designsystem.theme.WherePaidTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -34,8 +35,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            // TODO(③): 앱 테마(색, 글꼴)를 정하면 MaterialTheme을 교체한다.
-            MaterialTheme {
+
+            WherePaidTheme {
                 WherePaidNav(appContainer)
             }
         }

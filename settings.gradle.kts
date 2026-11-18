@@ -20,6 +20,9 @@ include(":app")
 // 모듈 간 약속: 모델, 인터페이스, 가짜 구현
 include(":core:model")
 
+// 디자인 시스템: 색·글꼴·공통 컴포넌트
+include(":core:designsystem")
+
 // 구현 모듈 (담당은 CLAUDE.md 참고)
 include(":core:notification")
 include(":core:location")
