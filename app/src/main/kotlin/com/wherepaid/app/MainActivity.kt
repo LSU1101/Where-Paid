@@ -4,92 +4,103 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.wherepaid.app.feature.history.HistoryScreen
+import com.wherepaid.app.core.designsystem.component.BottomTab
+import com.wherepaid.app.core.designsystem.component.WherePaidBottomBar
+import com.wherepaid.app.core.designsystem.component.WherePaidIcons
+import com.wherepaid.app.core.designsystem.theme.WherePaidTheme
 import com.wherepaid.app.feature.map.MapScreen
-import com.wherepaid.app.feature.settings.SettingsScreen
+import com.wherepaid.app.feature.onboarding.OnboardingScreen
+import com.wherepaid.app.feature.placecheck.PlaceCheckScreen
+import com.wherepaid.app.feature.report.ReportScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            // TODO(③): 앱 테마(색, 글꼴)를 정하면 MaterialTheme을 교체한다.
-            MaterialTheme {
+            WherePaidTheme {
                 WherePaidNav(appContainer)
             }
         }
     }
 }
 
-/** 하단 탭. 화면을 추가하면 여기와 [WherePaidNav]의 NavHost에 등록한다. */
-private enum class TopLevelDestination(val route: String, val label: String, val icon: ImageVector) {
-    MAP("map", "지도", Icons.Filled.Place),
-    HISTORY("history", "내역", Icons.AutoMirrored.Filled.List),
-    SETTINGS("settings", "설정", Icons.Filled.Settings),
+/** 화면 경로. 하위 화면(S-06 매장 찾기, S-07 온라인 결제, S-09 공유)은 화면을 만들 때 여기에 추가한다. */
+private object Routes {
+    const val ONBOARDING = "onboarding"
+    const val MAP = "map"
+    const val PLACE_CHECK = "place-check"
+    const val REPORT = "report"
+}
+
+/** 하단 탭 (피그마 시안: 지도 / 장소 확인 / 리포트). */
+private enum class TopLevelDestination(val route: String, val tab: BottomTab) {
+    MAP(Routes.MAP, BottomTab("지도", WherePaidIcons.tabMap)),
+    PLACE_CHECK(Routes.PLACE_CHECK, BottomTab("장소 확인", WherePaidIcons.tabPlace)),
+    REPORT(Routes.REPORT, BottomTab("리포트", WherePaidIcons.tabReport)),
 }
 
 @Composable
 private fun WherePaidNav(container: AppContainer) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentDestination = backStackEntry?.destination
+    val destination = backStackEntry?.destination
+    val selectedTab = TopLevelDestination.entries.indexOfFirst { top ->
+        destination?.hierarchy?.any { it.route == top.route } == true
+    }
+    val startDestination = remember { if (container.onboardingStore.isDone) Routes.MAP else Routes.ONBOARDING }
 
     Scaffold(
+        // 화면이 상태 바 영역을 직접 다룬다 (지도는 상태 바 밑까지 그린다).
+        contentWindowInsets = WindowInsets(0),
         bottomBar = {
-            NavigationBar {
-                TopLevelDestination.entries.forEach { destination ->
-                    NavigationBarItem(
-                        selected = currentDestination?.hierarchy?.any { it.route == destination.route } == true,
-                        onClick = {
-                            navController.navigate(destination.route) {
-                                // 탭을 오갈 때 백스택이 쌓이지 않게 하고 각 탭의 상태를 유지한다.
-                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                        icon = { Icon(destination.icon, contentDescription = null) },
-                        label = { Text(destination.label) },
-                    )
-                }
+            if (selectedTab >= 0) {
+                WherePaidBottomBar(
+                    tabs = TopLevelDestination.entries.map { it.tab },
+                    selectedIndex = selectedTab,
+                    onSelect = { navController.navigateToTab(TopLevelDestination.entries[it].route) },
+                )
             }
         },
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = TopLevelDestination.MAP.route,
+            startDestination = startDestination,
             modifier = Modifier.padding(innerPadding),
         ) {
-            composable(TopLevelDestination.MAP.route) {
-                MapScreen(repository = container.transactionRepository)
+            composable(Routes.ONBOARDING) {
+                OnboardingScreen(onStart = {
+                    container.onboardingStore.markDone()
+                    navController.navigate(Routes.MAP) { popUpTo(Routes.ONBOARDING) { inclusive = true } }
+                })
             }
-            composable(TopLevelDestination.HISTORY.route) {
-                HistoryScreen(repository = container.transactionRepository)
-            }
-            composable(TopLevelDestination.SETTINGS.route) {
-                SettingsScreen(dataSourceLabel = if (container.usesFakeData) "가짜 데이터" else "기기 DB (Room)")
-            }
+            composable(Routes.MAP) { MapScreen() }
+            composable(Routes.PLACE_CHECK) { PlaceCheckScreen(Modifier.statusBarsPadding()) }
+            composable(Routes.REPORT) { ReportScreen(Modifier.statusBarsPadding()) }
         }
     }
+}
+
+/**
+ * 탭을 오갈 때 백스택이 쌓이지 않게 하고 각 탭의 상태를 유지한다.
+ * 그래프의 시작 화면은 첫 실행 때 온보딩이라, 항상 지도 홈을 기준으로 정리한다.
+ */
+private fun NavHostController.navigateToTab(route: String) = navigate(route) {
+    popUpTo(Routes.MAP) { saveState = true }
+    launchSingleTop = true
+    restoreState = true
 }

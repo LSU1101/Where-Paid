@@ -82,13 +82,15 @@ kotlin {
 dependencies {
     // :app만 모든 모듈을 알고, AppContainer에서 구현을 골라 화면에 넘긴다.
     implementation(project(":core:model"))
+    implementation(project(":core:designsystem"))
     implementation(project(":core:notification"))
     implementation(project(":core:location"))
     implementation(project(":core:place"))
     implementation(project(":core:data"))
     implementation(project(":feature:map"))
-    implementation(project(":feature:history"))
-    implementation(project(":feature:settings"))
+    implementation(project(":feature:onboarding"))
+    implementation(project(":feature:placecheck"))
+    implementation(project(":feature:report"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
@@ -96,7 +98,6 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.material.icons.core)
     implementation(libs.androidx.compose.ui.tooling.preview)
     debugImplementation(libs.androidx.compose.ui.tooling)
     implementation(libs.androidx.navigation.compose)

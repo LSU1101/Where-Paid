@@ -24,7 +24,7 @@
    ```
 2. Android Studio → **Open** → 클론한 폴더를 선택하고 Gradle Sync가 끝날 때까지 기다립니다.
 3. 상단에서 에뮬레이터(없으면 Device Manager에서 Pixel 계열, API 36으로 하나 만듭니다)를 고르고 ▶ **Run**을 누릅니다.
-4. 하단 탭 **지도 / 내역 / 설정**이 보이고, 내역 탭에 가짜 거래 5건이 나오면 성공입니다.
+4. 첫 화면 온보딩에서 **시작하기**를 누른 뒤, 하단 탭 **지도 / 장소 확인 / 리포트**가 보이면 성공입니다. (화면은 아직 자리표시입니다)
 
 `local.properties`는 Android Studio가 SDK 경로(`sdk.dir`)만 넣어서 자동으로 만듭니다. **여기까지는 다른 설정이 필요 없습니다.**
 
@@ -104,9 +104,11 @@ core/notification/   ① 알림 수집·파싱        → PaymentSource
 core/location/       ② GPS 1회 측정          → LocationProvider
 core/place/          ② 카카오 장소 검색       → PlaceResolver
 core/data/           ④ 저장 (Room)           → TransactionRepository
-feature/map/         ③ 지도 화면
-feature/history/     ③ 내역 화면
-feature/settings/    ③ 설정 화면
+core/designsystem/   ③ 색·글꼴·공통 컴포넌트 (피그마 시안)
+feature/onboarding/  ③ 첫 실행 온보딩
+feature/map/         ③ 탭 1: 지도 홈, 핀 상세, 온라인 결제
+feature/placecheck/  ③ 탭 2: 장소 확인, 매장 찾기
+feature/report/      ③ 탭 3: 월간 리포트, 공유 카드
 ```
 
 | 역할 | 맡은 곳 |
