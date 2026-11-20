@@ -55,6 +55,8 @@ data class WherePaidTypography(
     val caption13Medium: TextStyle = style(13.sp, FontWeight.Medium),
     val caption13: TextStyle = style(13.sp, FontWeight.Normal),
     val label12: TextStyle = style(12.sp, FontWeight.SemiBold),
+    /** 번호 배지·번호 핀 (S-06의 1 2 3). 시안은 배지 11.76, 핀 12인데 12로 통일. */
+    val badge12: TextStyle = style(12.sp, FontWeight.Bold),
     val caption12Medium: TextStyle = style(12.sp, FontWeight.Medium),
     val caption12: TextStyle = style(12.sp, FontWeight.Normal),
     /** 지도 핀 이름표, 지역 라벨 */

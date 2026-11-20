@@ -32,8 +32,10 @@ data class WherePaidColors(
     val warningContainer: Color = Color(0xFFFFF4E0),
     val onWarningContainer: Color = Color(0xFFB26A00),
 
-    /** 삭제, 결제 취소 금액. */
+    /** 삭제, 결제 취소 금액, 오류. */
     val danger: Color = Color(0xFFC9302C),
+    /** 오류 기호 바탕 (S-06 오프라인). */
+    val dangerContainer: Color = Color(0xFFFCEBEA),
 
     /** 온라인 결제. */
     val online: Color = Color(0xFF6B5CE7),

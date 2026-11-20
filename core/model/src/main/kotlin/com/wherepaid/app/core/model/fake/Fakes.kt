@@ -57,7 +57,7 @@ class FakePlaceResolver(
 
     override suspend fun search(query: String, near: LatLng?): List<Place> {
         if (offline) throw java.io.IOException("오프라인 (가짜)")
-        val key = query.replace(" ", "")
+        val key = (SampleData.aliases[query.trim()] ?: query).replace(" ", "")
         return places
             .filter { key.isNotEmpty() && it.name.replace(" ", "").contains(key, ignoreCase = true) }
             .sortedBy { place -> near?.let { distanceMeters(it, place.latLng) } ?: 0.0 }
