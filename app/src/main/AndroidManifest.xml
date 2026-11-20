@@ -6,6 +6,9 @@
         (알림 접근: core/notification, 위치: core/location, 인터넷: core/place)
     -->
 
+    <!-- 오프라인 안내와 매칭 대기 재검색을 위한 연결 상태 확인 (일반 권한, 사용자에게 묻지 않음) -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <application
         android:name=".WherePaidApp"
         android:allowBackup="true"
